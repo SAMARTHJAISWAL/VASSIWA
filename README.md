@@ -1,126 +1,88 @@
 # VASSIWA
 
-# MERN Event Management System
+Website for **VASSIWA**, an association of industrial companies in Visakhapatnam. Member companies can register (with their Udyam ID), log in, browse events and a gallery, and submit grievances or contact messages.
 
-A comprehensive web application built using the MERN (MongoDB, Express.js, React, Node.js) stack for managing user registrations, subscriptions, and events.
+Built with React on the frontend and Node.js / Express / MongoDB on the backend.
 
 ## Features
 
-- **User Authentication & Management**
-  - Secure user registration and login
-  - JWT-based authentication system
-  - User profile management
-  - Subscription handling
+- **Company registration** — company name, email, contact number, date of joining, Udyam ID, nature of product, password and an uploaded screenshot of the Udyam ID (JPEG/PNG, max 5 MB). Passwords are hashed with bcrypt.
+- **Login** with email + password; the backend returns a JWT (valid 1 hour) which is kept in `localStorage`.
+- After registering or logging in, the navbar's **Feedback** link switches to **Grievances**.
+- **Grievances** and **Contact Us** forms saved to MongoDB.
+- **Admin grievances** page (`/admin/grievances`) listing all submitted grievances.
+- Static pages: landing page with links to Udyam / MSME, events (sample data), gallery, disclaimer, feedback form (front-end only; there is no feedback endpoint yet).
 
-- **Event Gallery**
-  - Dynamic event display
-  - Image optimization and lazy loading
-  - Filtering and search capabilities
-  - Responsive grid layout
+## Tech stack
 
-- **Feedback System**
-  - User feedback submission
-  - Rating system
-  - Comment moderation
-  - Analytics dashboard
+- **Frontend:** React 18 (Create React App), React Router 6, styled-components, axios, react-datepicker
+- **Backend:** Node.js, Express 4, Mongoose 8 (MongoDB), multer (file uploads), bcryptjs, jsonwebtoken, dotenv
 
-## Tech Stack
+## Getting started
 
-- **Frontend**
-  - React.js
-  - Redux for state management
-  - Material-UI/Tailwind CSS
-  - Axios for API requests
+Requirements: Node.js 18+ and a MongoDB database (local `mongod` or a free MongoDB Atlas cluster).
 
-- **Backend**
-  - Node.js
-  - Express.js
-  - MongoDB
-  - JWT for authentication
+### 1. Backend (port 5001)
 
-## Installation
-
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd event-management-system
-```
-
-2. Install server dependencies:
-```bash
-cd server
+cd backend
 npm install
+cp .env.example .env    # set MONGODB_URI and JWT_SECRET
+npm run dev             # or: npm start
 ```
 
-3. Install client dependencies:
+| Variable | Required | Description |
+| --- | --- | --- |
+| `MONGODB_URI` | yes | MongoDB connection string |
+| `JWT_SECRET` | yes | Secret for signing login tokens |
+| `PORT` | no | API port (default `5001`) |
+
+The server refuses to start if `MONGODB_URI` or `JWT_SECRET` is missing. Uploaded screenshots are saved to `backend/uploads/` (git-ignored) and served at `/uploads/...`.
+
+### 2. Frontend (port 3000)
+
 ```bash
-cd ../client
+cd frontend
 npm install
-```
-
-4. Create a `.env` file in the server directory:
-```env
-MONGODB_URI=your_mongodb_uri
-JWT_SECRET=your_jwt_secret
-PORT=5000
-```
-
-5. Start the development server:
-```bash
-# Start backend server
-cd server
-npm run dev
-
-# Start frontend in a new terminal
-cd client
+cp .env.example .env    # optional; defaults to http://localhost:5001/api
 npm start
 ```
 
-## API Endpoints
+| Variable | Default | Description |
+| --- | --- | --- |
+| `REACT_APP_API_URL` | `http://localhost:5001/api` | Backend API base URL |
 
-### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - User login
-- `GET /api/auth/profile` - Get user profile
+`npm run build` creates a production build in `frontend/build`.
 
-### Events
-- `GET /api/events` - Get all events
-- `POST /api/events` - Create new event
-- `PUT /api/events/:id` - Update event
-- `DELETE /api/events/:id` - Delete event
+## API
 
-### Feedback
-- `POST /api/feedback` - Submit feedback
-- `GET /api/feedback` - Get all feedback
+| Method | Endpoint | Body |
+| --- | --- | --- |
+| GET | `/api/health` | — |
+| POST | `/api/companies` | `multipart/form-data`: `companyName`, `email`, `contactNumber`, `dateOfJoining`, `udyamId`, `natureOfProduct`, `password`, `screenshot` (file) |
+| POST | `/api/Login` | `{ email, password }` → `{ token, company }` |
+| GET / POST | `/api/grievances` | `{ companyName, email, grievance }` |
+| GET / POST | `/api/contact` | `{ name, email, message }` |
 
-## Project Structure
+## Project structure
 
 ```
-├── client/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── redux/
-│   │   ├── utils/
-│   │   └── App.js
-│   └── package.json
-│
-├── server/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   ├── config/
-│   └── server.js
-│
-└── README.md
+backend/
+  server.js            Express app, MongoDB connection, route mounting
+  models/              Company, Grievance, Contact (Mongoose schemas)
+  routes/              companies (registration + upload), Login, grievances, contact
+frontend/
+  public/
+  src/
+    App.js             routes
+    config.js          API base URL
+    context/           RegistrationContext (logged-in / registered flag)
+    components/        pages (registration, Login, landing, events, gallery, ...)
+    assets/            logo and gallery images
 ```
 
-## Contributing
+## Known limitations
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- `GET /api/grievances`, `GET /api/contact` and the `/admin/grievances` page are **not protected** — anyone can read submitted names, emails and messages. Add authentication before deploying publicly.
+- The registered/logged-in flag lives in React state only, so it resets on page reload.
+- Events are hard-coded sample data and the gallery images are placeholders (copies of the logo).

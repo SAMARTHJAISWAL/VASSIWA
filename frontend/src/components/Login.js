@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
+import { RegistrationContext } from '../context/RegistrationContext';
 
 const Container = styled.div`
   padding: 20px;
@@ -41,38 +44,53 @@ const Button = styled.button`
   }
 `;
 
-const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+const ErrorText = styled.p`
+  color: #c0392b;
+`;
 
-  const handleSubmit = (e) => {
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { setIsRegistered } = useContext(RegistrationContext);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would validate credentials and log in the user
-    console.log('Logging in with:', username, password);
-    navigate('/dashboard'); // Navigate to the dashboard or appropriate page after login
+    setError('');
+    try {
+      const { data } = await axios.post(`${API_URL}/Login`, { email, password });
+      localStorage.setItem('token', data.token);
+      setIsRegistered(true);
+      navigate('/landing');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    }
   };
 
   return (
     <Container>
       <h1>Login</h1>
       <Form onSubmit={handleSubmit}>
-        <Label htmlFor="username">Username:</Label>
+        <Label htmlFor="email">Email:</Label>
         <Input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          id="email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <Label htmlFor="password">Password:</Label>
         <Input
           id="password"
           type="password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        {error && <ErrorText role="alert">{error}</ErrorText>}
         <Button type="submit">Log In</Button>
       </Form>
     </Container>

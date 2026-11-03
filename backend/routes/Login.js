@@ -1,27 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const Company = require('../models/Company');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Login route
+// Login route: { email, password } -> { token, company }
 router.post('/', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const company = await Company.findOne({ email });
-    if (!company) {
-      return res.status(400).send({ message: 'Invalid email or password' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const isMatch = await bcrypt.compare(password, company.password);
-    if (!isMatch) {
-      return res.status(400).send({ message: 'Invalid email or password' });
+    const company = await Company.findOne({ email: String(email).toLowerCase().trim() });
+    if (!company || !(await bcrypt.compare(password, company.password))) {
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ id: company._id }, 'your_jwt_secret', { expiresIn: '1h' });
-    res.send({ token });
+    const token = jwt.sign({ id: company._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, company: { id: company._id, companyName: company.companyName, email: company.email } });
   } catch (error) {
-    res.status(500).send(error);
+    console.error(error);
+    res.status(500).json({ message: 'Login failed' });
   }
 });
 
