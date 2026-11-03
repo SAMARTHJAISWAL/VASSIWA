@@ -8,8 +8,7 @@ const PageWrapper = styled.div`
 const Udyam = () => {
   return (
     <PageWrapper>
-      <h2>Udyam Page</h2><p>Content for the Udyam page goes here. For more information, visit the <a href="
-https://udyamregistration.gov.in/Government-India/Ministry-MSME-registration.htm" target="_blank" rel="noopener noreferrer">Udyam Official Registration Website</a>.</p>
+      <h2>Udyam Page</h2><p>Content for the Udyam page goes here. For more information, visit the <a href="https://udyamregistration.gov.in/Government-India/Ministry-MSME-registration.htm" target="_blank" rel="noopener noreferrer">Udyam Official Registration Website</a>.</p>
     </PageWrapper>
   );
 };

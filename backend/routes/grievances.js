@@ -25,7 +25,11 @@ router.post('/', async (req, res) => {
     const newGrievance = await grievance.save();
     res.status(201).json(newGrievance);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ message: err.message });
+    }
+    console.error(err);
+    res.status(500).json({ message: 'Could not save your message. Please try again later.' });
   }
 });
 
