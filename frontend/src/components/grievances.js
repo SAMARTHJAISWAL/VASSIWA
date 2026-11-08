@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const fadeIn = keyframes`
   from {
@@ -64,6 +65,12 @@ const TextArea = styled.textarea`
   resize: none;
 `;
 
+const StatusText = styled.p`
+  margin-top: 15px;
+  text-align: center;
+  color: ${(props) => (props.$error ? '#c0392b' : '#2e7d32')};
+`;
+
 const Button = styled.button`
   padding: 10px;
   font-size: 1em;
@@ -81,25 +88,28 @@ const Button = styled.button`
 `;
 
 const Grievances = () => {
+  const [status, setStatus] = useState(null);
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [grievance, setGrievance] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setStatus(null);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/grievances`, {
+      await axios.post(`${API_URL}/grievances`, {
         companyName,
         email,
         grievance
       });
-      console.log(response.data);
+      setStatus({ error: false, text: 'Thank you! Your submission has been received.' });
+      setCompanyName('');
+      setEmail('');
+      setGrievance('');
     } catch (error) {
       console.error('Grievance error:', error);
+      setStatus({ error: true, text: error.response?.data?.message || 'Submission failed. Please try again.' });
     }
-    setCompanyName('');
-    setEmail('');
-    setGrievance('');
   };
 
   return (
@@ -107,28 +117,36 @@ const Grievances = () => {
       <FormWrapper>
         <Title>Submit Your Grievance</Title>
         <Form onSubmit={handleSubmit}>
-          <Label>Company Name:</Label>
+          <Label htmlFor="companyName">Company Name:</Label>
           <Input
+            id="companyName"
             type="text"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
             required
           />
-          <Label>Email:</Label>
+          <Label htmlFor="email">Email:</Label>
           <Input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Label>Grievance:</Label>
+          <Label htmlFor="grievance">Grievance:</Label>
           <TextArea
+            id="grievance"
             value={grievance}
             onChange={(e) => setGrievance(e.target.value)}
             required
             rows="5"
           />
           <Button type="submit">Submit</Button>
+          {status && (
+            <StatusText role="status" $error={status.error}>
+              {status.text}
+            </StatusText>
+          )}
         </Form>
       </FormWrapper>
     </PageWrapper>

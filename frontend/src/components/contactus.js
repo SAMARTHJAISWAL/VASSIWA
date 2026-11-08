@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const fadeIn = keyframes`
   from {
@@ -64,6 +65,12 @@ const TextArea = styled.textarea`
   resize: none;
 `;
 
+const StatusText = styled.p`
+  margin-top: 15px;
+  text-align: center;
+  color: ${(props) => (props.$error ? '#c0392b' : '#2e7d32')};
+`;
+
 const Button = styled.button`
   padding: 10px;
   font-size: 1em;
@@ -81,25 +88,28 @@ const Button = styled.button`
 `;
 
 const ContactUs = () => {
+  const [status, setStatus] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setStatus(null);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/contact`, {
+      await axios.post(`${API_URL}/contact`, {
         name,
         email,
         message,
       });
-      console.log(response.data);
+      setStatus({ error: false, text: 'Thank you! Your submission has been received.' });
+      setName('');
+      setEmail('');
+      setMessage('');
     } catch (error) {
       console.error('Contact Us error:', error);
+      setStatus({ error: true, text: error.response?.data?.message || 'Submission failed. Please try again.' });
     }
-    setName('');
-    setEmail('');
-    setMessage('');
   };
 
   return (
@@ -107,28 +117,36 @@ const ContactUs = () => {
       <FormWrapper>
         <Title>Contact Us</Title>
         <Form onSubmit={handleSubmit}>
-          <Label>Name:</Label>
+          <Label htmlFor="name">Name:</Label>
           <Input
+            id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
-          <Label>Email:</Label>
+          <Label htmlFor="email">Email:</Label>
           <Input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Label>Message:</Label>
+          <Label htmlFor="message">Message:</Label>
           <TextArea
+            id="message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             required
             rows="5"
           />
           <Button type="submit">Submit</Button>
+          {status && (
+            <StatusText role="status" $error={status.error}>
+              {status.text}
+            </StatusText>
+          )}
         </Form>
       </FormWrapper>
     </PageWrapper>

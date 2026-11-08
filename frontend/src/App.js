@@ -38,7 +38,6 @@ function App() {
           <Route path="/whats-new" element={<WhatsNew />} />
           <Route path="/grievances" element={<Grievances />} />
           <Route path="/admin/grievances" element={<AdminGrievances />} />
-          <Route path="/" element={<Navigate to="/registration" />} /> {/* Default route */}
         </Routes>
       </Layout>
     </Router>

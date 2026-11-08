@@ -1,40 +1,53 @@
+require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+
+const { MONGODB_URI, JWT_SECRET } = process.env;
+if (!MONGODB_URI || !JWT_SECRET) {
+  console.error('MONGODB_URI and JWT_SECRET must be set. Copy .env.example to .env and fill them in.');
+  process.exit(1);
+}
+
+// Uploaded ID screenshots are stored here (multer does not create the folder itself)
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const app = express();
 
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
 
-// Serve static files from the 'uploads' directory
-app.use('/uploads', express.static('uploads'));
+// Serve uploaded files
+app.use('/uploads', express.static(UPLOAD_DIR));
 
 // MongoDB connection
-// MongoDB connection without deprecated options
-mongoose.connect('mongodb+srv://samarthjaiswal30:jaiswal30@vassiwa.iszaery.mongodb.net/?retryWrites=true&w=majority&appName=Vassiwa');
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err.message));
 
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', () => {
-  console.log('Connected to MongoDB');
-});
-
-// Rest of your server code...
-
-
-
-// Define routes
+// Routes
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/grievances', require('./routes/grievances'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/Login', require('./routes/Login'));
+
+// Error handler (invalid JSON, upload errors, ...)
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ message: 'Invalid JSON body' });
+  }
+  console.error(err);
+  res.status(500).json({ message: 'Internal server error' });
+});
 
 // Start the server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-

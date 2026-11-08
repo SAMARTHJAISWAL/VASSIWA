@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
+import { API_URL } from '../config';
 
 const PageWrapper = styled.div`
   display: flex;
@@ -43,19 +45,26 @@ const GrievanceItem = styled.li`
 
 const AdminGrievances = () => {
   const [grievances, setGrievances] = useState([]);
+  const [error, setError] = useState('');
 
+  // Grievances are stored by the backend (POST /api/grievances); nothing ever
+  // wrote them to localStorage, so this page used to always be empty.
   useEffect(() => {
-    const storedGrievances = JSON.parse(localStorage.getItem('grievances')) || [];
-    setGrievances(storedGrievances);
+    axios
+      .get(`${API_URL}/grievances`)
+      .then(({ data }) => setGrievances(data))
+      .catch(() => setError('Could not load grievances.'));
   }, []);
 
   return (
     <PageWrapper>
       <Container>
         <Title>Review Grievances</Title>
+        {error && <p role="alert">{error}</p>}
+        {!error && grievances.length === 0 && <p>No grievances yet.</p>}
         <GrievanceList>
           {grievances.map((grievance, index) => (
-            <GrievanceItem key={index}>
+            <GrievanceItem key={grievance._id || index}>
               <strong>Company Name:</strong> {grievance.companyName}
               <br />
               <strong>Email:</strong> {grievance.email}

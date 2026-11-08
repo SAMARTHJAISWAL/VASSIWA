@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 // Styling for the container
@@ -55,13 +55,33 @@ const Button = styled.button`
 `;
 
 const Feedback = () => {
+  const [feedback, setFeedback] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  // There is no feedback endpoint in the backend yet, so the form only
+  // acknowledges the submission instead of reloading the page.
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setFeedback('');
+    setSubmitted(true);
+  };
+
   return (
     <FeedbackContainer>
       <h2>Feedback</h2>
-      <Form>
+      <Form onSubmit={handleSubmit}>
         <Label htmlFor="feedback">Your Feedback:</Label>
-        <TextArea id="feedback" required></TextArea>
+        <TextArea
+          id="feedback"
+          value={feedback}
+          onChange={(e) => {
+            setFeedback(e.target.value);
+            setSubmitted(false);
+          }}
+          required
+        />
         <Button type="submit">Submit</Button>
+        {submitted && <p role="status">Thank you for your feedback!</p>}
       </Form>
     </FeedbackContainer>
   );
