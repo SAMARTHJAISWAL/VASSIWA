@@ -15,12 +15,12 @@ Built with React on the frontend and Node.js / Express / MongoDB on the backend.
 
 ## Tech stack
 
-- **Frontend:** React 18 (Create React App), React Router 6, styled-components, axios, react-datepicker
+- **Frontend:** React 18 (Vite), React Router 6, styled-components, axios, react-datepicker
 - **Backend:** Node.js, Express 4, Mongoose 8 (MongoDB), multer (file uploads), bcryptjs, jsonwebtoken, dotenv
 
 ## Getting started
 
-Requirements: Node.js 18+ and a MongoDB database (local `mongod` or a free MongoDB Atlas cluster).
+Requirements: Node.js 20.19+ or 22.12+ (the backend alone runs on 18+) and a MongoDB database (local `mongod` or a free MongoDB Atlas cluster).
 
 ### 1. Backend (port 5001)
 
@@ -45,14 +45,22 @@ The server refuses to start if `MONGODB_URI` or `JWT_SECRET` is missing. Uploade
 cd frontend
 npm install
 cp .env.example .env    # optional; defaults to http://localhost:5001/api
-npm start
+npm run dev             # or: npm start
 ```
+
+The frontend is built with [Vite](https://vite.dev) and needs Node.js 20.19+ or 22.12+.
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `REACT_APP_API_URL` | `http://localhost:5001/api` | Backend API base URL |
+| `VITE_API_URL` | `http://localhost:5001/api` | Backend API base URL (read at build time via `import.meta.env`) |
 
-`npm run build` creates a production build in `frontend/build`.
+Other scripts:
+
+- `npm run build` creates a production build in `frontend/build`
+- `npm run preview` serves that build locally on port 3000
+- `npm test` runs the Vitest test suite
+
+If you used the old Create React App setup, rename `REACT_APP_API_URL` to `VITE_API_URL` in your `frontend/.env`.
 
 ## API
 
@@ -72,9 +80,11 @@ backend/
   models/              Company, Grievance, Contact (Mongoose schemas)
   routes/              companies (registration + upload), Login, grievances, contact
 frontend/
-  public/
+  index.html           HTML entry (Vite)
+  vite.config.js       Vite + Vitest config (dev server on port 3000)
+  public/              static assets copied as-is (favicon, manifest, ...)
   src/
-    App.js             routes
+    App.jsx            routes
     config.js          API base URL
     context/           RegistrationContext (logged-in / registered flag)
     components/        pages (registration, Login, landing, events, gallery, ...)
