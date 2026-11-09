@@ -96,3 +96,9 @@ frontend/
 - `GET /api/grievances`, `GET /api/contact` and the `/admin/grievances` page are **not protected** — anyone can read submitted names, emails and messages. Add authentication before deploying publicly.
 - The registered/logged-in flag lives in React state only, so it resets on page reload.
 - Events are hard-coded sample data and the gallery images are placeholders (copies of the logo).
+
+## Licence
+
+[MIT](LICENSE) © 2024–2026 Samarth Jaiswal
+
+The MIT licence covers the source code. Images, video and other media in this repository are not covered.
